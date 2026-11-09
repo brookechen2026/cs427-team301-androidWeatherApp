@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MapActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">edu.uiuc.cs427app</a> &gt; <span class="el_source">MapActivity.java</span></div><h1>MapActivity.java</h1><pre class="source lang-java linenums">package edu.uiuc.cs427app;
+
+import android.os.Bundle;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
+
+<span class="nc" id="L10">public class MapActivity extends AppCompatActivity {</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L14">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L15">        setContentView(R.layout.activity_map);</span>
+
+        // grabbing the strings from the intent
+<span class="nc" id="L18">        String cityName = getIntent().getStringExtra(&quot;cityName&quot;);</span>
+<span class="nc" id="L19">        String lat = getIntent().getStringExtra(&quot;lat&quot;);</span>
+<span class="nc" id="L20">        String lon = getIntent().getStringExtra(&quot;lon&quot;);</span>
+        // String testurl = &quot;google.com&quot;;
+
+<span class="nc" id="L23">        System.out.println(&quot;map view for lat: &quot; + lat + &quot; lon: &quot; + lon);</span>
+<span class="nc" id="L24">        System.out.println(&quot;initalizing views&quot;);</span>
+
+        // find views
+<span class="nc" id="L27">        TextView titleText = findViewById(R.id.textView7);</span>
+<span class="nc" id="L28">        TextView coordText = findViewById(R.id.textView8);</span>
+<span class="nc" id="L29">        WebView webView = findViewById(R.id.webView);</span>
+
+        // set text
+<span class="nc" id="L32">        titleText.setText(cityName + &quot; map&quot;);</span>
+<span class="nc" id="L33">        coordText.setText(&quot;lat: &quot; + lat + &quot;,lon: &quot; + lon);</span>
+
+        // google map embedded url building string
+<span class="nc" id="L36">        String mapUrl = &quot;https://maps.google.com/maps?q=&quot; + lat + &quot;,&quot; + lon + &quot;&amp;t=&amp;z=15&amp;ie=UTF8&amp;iwloc=&amp;output=embed&quot;;</span>
+
+        // basic webview setup stuff
+<span class="nc" id="L39">        WebSettings webSettings = webView.getSettings();</span>
+<span class="nc" id="L40">        webSettings.setJavaScriptEnabled(true);</span>
+        // this makes sure it opens inside the app and doesn't launch a browser
+<span class="nc" id="L42">        webView.setWebViewClient(new WebViewClient());</span>
+
+<span class="nc" id="L44">        System.out.println(&quot;loading url: &quot; + mapUrl);</span>
+
+        // need to hard code google ifarame as html
+<span class="nc" id="L47">        String htmlDocs = &quot;&lt;iframe width=\&quot;100%\&quot; height=\&quot;100%\&quot; style=\&quot;border:0\&quot; src=\&quot;&quot; + mapUrl + &quot;\&quot;&gt;&lt;/iframe&gt;&quot;;</span>
+<span class="nc" id="L48">        webView.loadData(htmlDocs, &quot;text/html&quot;, &quot;utf-8&quot;);</span>
+        // webView.loadUrl(mapUrl);
+<span class="nc" id="L50">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

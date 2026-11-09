@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MainActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">edu.uiuc.cs427app</a> &gt; <span class="el_source">MainActivity.java</span></div><h1>MainActivity.java</h1><pre class="source lang-java linenums">package edu.uiuc.cs427app;
+
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+import edu.uiuc.cs427app.locations.LocationCallback;
+import edu.uiuc.cs427app.locations.LocationManager;
+import edu.uiuc.cs427app.service.ThemeService;
+import java.util.List;
+
+<span class="fc" id="L18">public class MainActivity extends AppCompatActivity {</span>
+
+    private LocationManager locationManager;
+    private LinearLayout cityListContainer;
+    private String username;
+    private ThemeService themeService;
+
+    // store theme colros so we can reapply when list refreshes
+<span class="fc" id="L26">    private int currentBgColor = Color.WHITE;</span>
+<span class="fc" id="L27">    private int currentTxtColor = Color.BLACK;</span>
+<span class="fc" id="L28">    private int currentBtnColor = Color.parseColor(&quot;#6200EE&quot;);</span>
+<span class="fc" id="L29">    private boolean hasTheme = false;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L33">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L34">        setContentView(R.layout.activity_main);</span>
+        // get username and theme promt from the login screen
+<span class="fc" id="L36">        username = getIntent().getStringExtra(&quot;username&quot;);</span>
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (username == null)</span>
+<span class="nc" id="L38">            username = &quot;Unknown&quot;;</span>
+<span class="fc" id="L39">        String themePrompt = getIntent().getStringExtra(&quot;themePrompt&quot;);</span>
+
+        // set title to show team number and username
+<span class="fc" id="L42">        getSupportActionBar().setTitle(&quot;Team 301 - &quot; + username);</span>
+
+        // initalize location manager for city operations
+<span class="fc" id="L45">        locationManager = new LocationManager(this);</span>
+<span class="fc" id="L46">        themeService = new ThemeService();</span>
+
+        // get ui elements
+<span class="fc" id="L49">        cityListContainer = findViewById(R.id.cityListContainer);</span>
+<span class="fc" id="L50">        Button buttonNew = findViewById(R.id.buttonAddLocation);</span>
+<span class="fc" id="L51">        Button logoutButton = findViewById(R.id.buttonLogout);</span>
+
+        // load the users cities into the list
+<span class="fc" id="L54">        refreshCityList();</span>
+
+        // add location button opens dialog box
+<span class="fc" id="L57">        buttonNew.setOnClickListener(v -&gt; showAddCityDialog());</span>
+
+        // logout goes back to login screen
+<span class="fc" id="L60">        logoutButton.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L61">            Intent intent = new Intent(this, LoginActivity.class);</span>
+<span class="fc" id="L62">            startActivity(intent);</span>
+<span class="fc" id="L63">            finish();</span>
+<span class="fc" id="L64">        });</span>
+
+        // apply llm theme if user has one
+<span class="pc bpc" id="L67" title="2 of 4 branches missed.">        if (themePrompt != null &amp;&amp; !themePrompt.isEmpty()) {</span>
+<span class="fc" id="L68">            applyLlmTheme(themePrompt);</span>
+        }
+<span class="fc" id="L70">    }</span>
+
+    // loads all the cities for this user and builds the list in the ui
+    private void refreshCityList() {
+<span class="fc" id="L74">        cityListContainer.removeAllViews();</span>
+<span class="fc" id="L75">        List&lt;String&gt; cities = locationManager.getCities(username);</span>
+
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (cities.isEmpty()) {</span>
+            // shows message when user hasnt added any cities yet
+<span class="fc" id="L79">            TextView emptyText = new TextView(this);</span>
+<span class="fc" id="L80">            emptyText.setText(&quot;No cities added yet. Click 'Add a location' to get started!&quot;);</span>
+<span class="fc" id="L81">            emptyText.setPadding(16, 32, 16, 32);</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">            if (hasTheme)</span>
+<span class="fc" id="L83">                emptyText.setTextColor(currentTxtColor);</span>
+<span class="fc" id="L84">            cityListContainer.addView(emptyText);</span>
+<span class="fc" id="L85">        } else {</span>
+            // create row for each city
+<span class="fc bfc" id="L87" title="All 2 branches covered.">            for (String city : cities) {</span>
+<span class="fc" id="L88">                addCityRow(city);</span>
+<span class="fc" id="L89">            }</span>
+        }
+<span class="fc" id="L91">    }</span>
+
+    // creates a row in the list for a single city with detail and remove buttons
+    private void addCityRow(String cityName) {
+<span class="fc" id="L95">        LinearLayout row = new LinearLayout(this);</span>
+<span class="fc" id="L96">        row.setOrientation(LinearLayout.HORIZONTAL);</span>
+<span class="fc" id="L97">        row.setPadding(8, 8, 8, 8);</span>
+        //city name
+<span class="fc" id="L99">        TextView cityLabel = new TextView(this);</span>
+<span class="fc" id="L100">        cityLabel.setText(cityName);</span>
+<span class="fc" id="L101">        cityLabel.setLayoutParams(new LinearLayout.LayoutParams(</span>
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (hasTheme)</span>
+<span class="fc" id="L104">            cityLabel.setTextColor(currentTxtColor);</span>
+<span class="fc" id="L105">        row.addView(cityLabel);</span>
+
+        //Weather button
+<span class="fc" id="L108">        Button weatherBtn = new Button(this);</span>
+<span class="fc" id="L109">        weatherBtn.setText(&quot;Weather&quot;);</span>
+<span class="fc" id="L110">        weatherBtn.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L111">            Intent intent = new Intent(this, DetailsActivity.class);</span>
+<span class="fc" id="L112">            intent.putExtra(&quot;city&quot;, cityName);</span>
+<span class="fc" id="L113">            startActivity(intent);</span>
+<span class="fc" id="L114">        });</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        if (hasTheme) {</span>
+<span class="fc" id="L116">            weatherBtn.setBackgroundColor(currentBtnColor);</span>
+<span class="fc" id="L117">            weatherBtn.setTextColor(currentTxtColor);</span>
+        }
+<span class="fc" id="L119">        row.addView(weatherBtn);</span>
+        //Map button
+<span class="fc" id="L121">        Button mapBtn = new Button(this);</span>
+<span class="fc" id="L122">        mapBtn.setText(&quot;Map&quot;);</span>
+<span class="fc" id="L123">        mapBtn.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L124">            Intent intent = new Intent(this, MapActivity.class);</span>
+<span class="nc" id="L125">            intent.putExtra(&quot;city&quot;, cityName);</span>
+<span class="nc" id="L126">            startActivity(intent);</span>
+<span class="nc" id="L127">        });</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        if (hasTheme) {</span>
+<span class="fc" id="L129">            mapBtn.setBackgroundColor(currentBtnColor);</span>
+<span class="fc" id="L130">            mapBtn.setTextColor(currentTxtColor);</span>
+        }
+<span class="fc" id="L132">        row.addView(mapBtn);</span>
+        //remove Button
+<span class="fc" id="L134">        Button removeBtn = new Button(this);</span>
+<span class="fc" id="L135">        removeBtn.setText(&quot;Remove&quot;);</span>
+<span class="fc" id="L136">        removeBtn.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L137">            locationManager.removeCity(cityName, username, new LocationCallback() {</span>
+                @Override
+                public void citiesUpdated(List&lt;String&gt; cities) {
+<span class="fc" id="L140">                    refreshCityList();</span>
+<span class="fc" id="L141">                }</span>
+
+                @Override
+                public void citiesUpdateFail(String errorMessage) {
+<span class="nc" id="L145">                    Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L146">                }</span>
+            });
+<span class="fc" id="L148">        });</span>
+
+<span class="fc bfc" id="L150" title="All 2 branches covered.">        if (hasTheme) {</span>
+<span class="fc" id="L151">            removeBtn.setBackgroundColor(currentBtnColor);</span>
+<span class="fc" id="L152">            removeBtn.setTextColor(currentTxtColor);</span>
+        }
+
+<span class="fc" id="L155">        row.addView(removeBtn);</span>
+
+<span class="fc" id="L157">        cityListContainer.addView(row);</span>
+<span class="fc" id="L158">    }</span>
+
+    // shows dialog box asking user to enter a city name
+    private void showAddCityDialog() {
+<span class="fc" id="L162">        AlertDialog.Builder builder = new AlertDialog.Builder(this);</span>
+<span class="fc" id="L163">        builder.setTitle(&quot;Add a City&quot;);</span>
+
+        // text feild for entering city
+<span class="fc" id="L166">        final EditText input = new EditText(this);</span>
+<span class="fc" id="L167">        input.setHint(&quot;City, State, Country (US) or City, Country&quot;);</span>
+<span class="fc" id="L168">        builder.setView(input);</span>
+        // when user clicks add, validate and add city using location manger
+<span class="fc" id="L170">        builder.setPositiveButton(&quot;Add&quot;, (dialog, which) -&gt; {</span>
+<span class="fc" id="L171">            String cityName = input.getText().toString().trim();</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">            if (cityName.isEmpty()) {</span>
+<span class="nc" id="L173">                Toast.makeText(this, &quot;Please enter a city name&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L174">                return;</span>
+            }
+<span class="fc" id="L176">            locationManager.addCity(cityName, username, new LocationCallback() {</span>
+                @Override
+                public void citiesUpdated(List&lt;String&gt; cities) {
+<span class="fc" id="L179">                    refreshCityList();</span>
+<span class="fc" id="L180">                }</span>
+
+                @Override
+                public void citiesUpdateFail(String errorMessage) {
+<span class="fc" id="L184">                    Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L185">                }</span>
+            });
+<span class="fc" id="L187">        });</span>
+<span class="pc" id="L188">        builder.setNegativeButton(&quot;Cancel&quot;, (dialog, which) -&gt; dialog.cancel());</span>
+<span class="fc" id="L189">        builder.show();</span>
+<span class="fc" id="L190">    }</span>
+
+    // calls the gemini api to generate theme colors and applys them to the ui
+    private void applyLlmTheme(String themePrompt) {
+<span class="fc" id="L194">        Toast.makeText(this, &quot;Loading theme: &quot; + themePrompt, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L195">        new Thread(() -&gt; {</span>
+            // fetch theme on backgrond thread
+<span class="fc" id="L197">            themeService.fetchTheme(themePrompt);</span>
+            // switch to main thread to update ui
+<span class="fc" id="L199">            runOnUiThread(() -&gt; {</span>
+                try {
+<span class="fc" id="L201">                    Toast.makeText(this, &quot;Theme: bg=&quot; + themeService.backgroundColor</span>
+                            + &quot; txt=&quot; + themeService.textColor
+<span class="fc" id="L203">                            + &quot; btn=&quot; + themeService.buttonColor, Toast.LENGTH_LONG).show();</span>
+
+                    // parse the colors from theme service
+<span class="fc" id="L206">                    currentBgColor = Color.parseColor(themeService.backgroundColor);</span>
+<span class="fc" id="L207">                    currentTxtColor = Color.parseColor(themeService.textColor);</span>
+<span class="fc" id="L208">                    currentBtnColor = Color.parseColor(themeService.buttonColor);</span>
+<span class="fc" id="L209">                    hasTheme = true;</span>
+
+                    // apply backgroud color to the main layout
+<span class="fc" id="L212">                    findViewById(R.id.mainLayout).setBackgroundColor(currentBgColor);</span>
+
+                    // apply text colors to header labels
+<span class="fc" id="L215">                    TextView title = findViewById(R.id.textViewTitle);</span>
+<span class="fc" id="L216">                    TextView listLabel = findViewById(R.id.textViewSubtitle);</span>
+<span class="fc" id="L217">                    title.setTextColor(currentTxtColor);</span>
+<span class="fc" id="L218">                    listLabel.setTextColor(currentTxtColor);</span>
+
+                    // apply button colors
+<span class="fc" id="L221">                    Button addBtn = findViewById(R.id.buttonAddLocation);</span>
+<span class="fc" id="L222">                    Button logoutBtn = findViewById(R.id.buttonLogout);</span>
+<span class="fc" id="L223">                    addBtn.setBackgroundColor(currentBtnColor);</span>
+<span class="fc" id="L224">                    logoutBtn.setBackgroundColor(currentBtnColor);</span>
+<span class="fc" id="L225">                    addBtn.setTextColor(currentTxtColor);</span>
+<span class="fc" id="L226">                    logoutBtn.setTextColor(currentTxtColor);</span>
+
+                    // refresh city list so rows get themed too
+<span class="fc" id="L229">                    refreshCityList();</span>
+
+<span class="nc" id="L231">                } catch (Exception e) {</span>
+                    // if color parsing fails just leave defualt colors
+<span class="nc" id="L233">                    Toast.makeText(this, &quot;Theme error: &quot; + e.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L234">                    android.util.Log.e(&quot;MainActivity&quot;, &quot;error applying theme: &quot; + e.getMessage());</span>
+<span class="fc" id="L235">                }</span>
+<span class="fc" id="L236">            });</span>
+<span class="fc" id="L237">        }).start();</span>
+<span class="fc" id="L238">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

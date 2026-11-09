@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LocationManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">edu.uiuc.cs427app.locations</a> &gt; <span class="el_source">LocationManager.java</span></div><h1>LocationManager.java</h1><pre class="source lang-java linenums">package edu.uiuc.cs427app.locations;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class LocationManager {
+    private final WeatherApiRequest weatherApiRequest;
+    private final Context context;
+    private final Handler mainHandler;
+
+<span class="fc" id="L16">    public LocationManager(Context context) {</span>
+<span class="fc" id="L17">        this.context           = context.getApplicationContext();</span>
+<span class="fc" id="L18">        this.weatherApiRequest = new WeatherApiRequest();</span>
+<span class="fc" id="L19">        this.mainHandler       = new Handler(Looper.getMainLooper());</span>
+<span class="fc" id="L20">    }</span>
+
+    // returns list of cities for a specific user given username
+    public List&lt;String&gt; getCities(String username) {
+<span class="fc" id="L24">        return loadCities(username);</span>
+    }
+
+    // adds city for username with given input city, username, and handles input errors before callback
+    public void addCity(String city, String username, LocationCallback callback) {
+<span class="fc" id="L29">        String input = city.trim();</span>
+<span class="fc" id="L30">        new Thread(() -&gt; {</span>
+
+            // error handling for city stirng
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">            if (input.isEmpty()) {</span>
+<span class="nc" id="L34">                mainHandler.post(() -&gt; callback.citiesUpdateFail(&quot;City name is empty. Please enter a valid city name (City, State, Country) for US or (City, Country) for non US.&quot;));</span>
+<span class="nc" id="L35">                return;</span>
+            }
+
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">            if (!weatherApiRequest.isValidCity(input)) {</span>
+<span class="nc" id="L39">                mainHandler.post(() -&gt; callback.citiesUpdateFail(&quot;City inputed is invalid.Please enter a valid city name (City, State, Country) for US or (City, Country) for non US.\&quot;)&quot;));</span>
+<span class="nc" id="L40">                return;</span>
+            }
+
+<span class="fc bfc" id="L43" title="All 2 branches covered.">            if (loadCities(username).contains(input)) {</span>
+<span class="fc" id="L44">                mainHandler.post(() -&gt; callback.citiesUpdateFail(&quot;City is already in list.&quot;));</span>
+<span class="fc" id="L45">                return;</span>
+            }
+
+            // adding city in sqlite database via manager
+<span class="fc" id="L49">            ContentValues values = new ContentValues();</span>
+<span class="fc" id="L50">            values.put(DatabaseManager.USERNAME, username);</span>
+<span class="fc" id="L51">            values.put(DatabaseManager.LOCATION, input);</span>
+<span class="fc" id="L52">            context.getContentResolver().insert(DatabaseManager.CONTENT_URI, values);</span>
+
+<span class="fc" id="L54">            mainHandler.post(() -&gt; callback.citiesUpdated(loadCities(username)));</span>
+
+<span class="fc" id="L56">        }).start();</span>
+<span class="fc" id="L57">    }</span>
+
+    // removes city from username given the city and returns the updated cities
+    public void removeCity(String city, String username, LocationCallback callback) {
+<span class="fc" id="L61">        new Thread(() -&gt; {</span>
+
+<span class="fc" id="L63">            int city_removed = context.getContentResolver().delete(DatabaseManager.CONTENT_URI, DatabaseManager.USERNAME + &quot; = ? AND &quot; + DatabaseManager.LOCATION + &quot; = ?&quot;, new String[]{ username, city });</span>
+
+            // if it returns as no city removed, return error message
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">            if (city_removed == 0) {</span>
+<span class="nc" id="L67">                mainHandler.post(() -&gt; callback.citiesUpdateFail(&quot;The city entered was not able to removed from list. Check the city entered again.&quot;));</span>
+<span class="nc" id="L68">                return;</span>
+            }
+
+<span class="fc" id="L71">            mainHandler.post(() -&gt; callback.citiesUpdated(loadCities(username)));</span>
+
+<span class="fc" id="L73">        }).start();</span>
+<span class="fc" id="L74">    }</span>
+
+   // loads all the cities from sqlite and converts to list for user city list return
+    private List&lt;String&gt; loadCities(String username) {
+<span class="fc" id="L78">        List&lt;String&gt; cityList = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L80">        Cursor cursor = context.getContentResolver().query(DatabaseManager.CONTENT_URI, new String[]{ DatabaseManager.LOCATION }, DatabaseManager.USERNAME + &quot; = ?&quot;, new String[]{ username }, null);</span>
+        // iterates over the rows of list of cities to append to cityList using cursor
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (cursor != null) {</span>
+            try {
+<span class="fc bfc" id="L84" title="All 2 branches covered.">                while (cursor.moveToNext()) {</span>
+<span class="fc" id="L85">                    cityList.add(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseManager.LOCATION)));</span>
+                }
+            }
+            finally {
+<span class="fc" id="L89">                cursor.close();</span>
+            }
+        }
+
+<span class="fc" id="L93">        return cityList;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

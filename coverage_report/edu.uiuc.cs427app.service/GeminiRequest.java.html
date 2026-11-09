@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GeminiRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">edu.uiuc.cs427app.service</a> &gt; <span class="el_source">GeminiRequest.java</span></div><h1>GeminiRequest.java</h1><pre class="source lang-java linenums">package edu.uiuc.cs427app.service;
+import java.util.ArrayList;
+import java.util.List;
+
+public class GeminiRequest {
+    public List&lt;Content&gt; contents;
+
+<span class="fc" id="L8">    public GeminiRequest(String text) {</span>
+<span class="fc" id="L9">        this.contents = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L10">        Content content = new Content();</span>
+<span class="fc" id="L11">        content.parts = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L12">        Part part = new Part();</span>
+<span class="fc" id="L13">        part.text = text;</span>
+<span class="fc" id="L14">        content.parts.add(part);</span>
+<span class="fc" id="L15">        this.contents.add(content);</span>
+<span class="fc" id="L16">    }</span>
+
+<span class="fc" id="L18">    public static class Content { public List&lt;Part&gt; parts; }</span>
+<span class="fc" id="L19">    public static class Part { public String text; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

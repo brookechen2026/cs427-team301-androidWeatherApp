@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DetailsActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">edu.uiuc.cs427app</a> &gt; <span class="el_source">DetailsActivity.java</span></div><h1>DetailsActivity.java</h1><pre class="source lang-java linenums">package edu.uiuc.cs427app;
+
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.Toast;
+import android.widget.TextView;
+import android.content.Intent;
+import edu.uiuc.cs427app.service.*;
+import edu.uiuc.cs427app.locations.WeatherApiRequest;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+<span class="fc" id="L18">public class DetailsActivity extends AppCompatActivity implements View.OnClickListener {</span>
+<span class="fc" id="L19">    private WeatherInsightService weatherService = new WeatherInsightService();</span>
+    private WeatherApiRequest.WeatherData currentWeatherData;
+    private String currentCityName;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L25">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L26">        setContentView(R.layout.activity_details);</span>
+
+        // Process the Intent payload that has opened this Activity and show the
+        // information accordingly
+<span class="fc" id="L30">        String cityName = getIntent().getStringExtra(&quot;city&quot;).toString();</span>
+<span class="fc" id="L31">        String welcome = &quot;Welcome to the &quot; + cityName;</span>
+<span class="fc" id="L32">        String cityWeatherInfo = &quot;Detailed information about the weather of &quot; + cityName;</span>
+
+        // Initializing the GUI elements
+<span class="fc" id="L35">        TextView welcomeMessage = findViewById(R.id.welcomeText);</span>
+<span class="fc" id="L36">        TextView cityInfoMessage = findViewById(R.id.cityInfo);</span>
+
+<span class="fc" id="L38">        welcomeMessage.setText(welcome);</span>
+<span class="fc" id="L39">        cityInfoMessage.setText(&quot;Loading weather for &quot; + cityName + &quot;.......&quot;);</span>
+
+<span class="fc" id="L41">        System.out.println(&quot;Trying to get weather request here&quot;);</span>
+        // doing weather api request
+<span class="fc" id="L43">        WeatherApiRequest weatherReq = new WeatherApiRequest();</span>
+<span class="fc" id="L44">        weatherReq.getWeatherUICall(cityName, new WeatherApiRequest.WeatherCallback() {</span>
+            @Override
+            public void weatherDataSuccess(WeatherApiRequest.WeatherData data) {
+<span class="fc" id="L47">                System.out.println(&quot;it worked!!&quot;);</span>
+<span class="fc" id="L48">                currentWeatherData = data;</span>
+<span class="fc" id="L49">                runOnUiThread(() -&gt; {</span>
+                    // getting time and date using util date since simple
+<span class="fc" id="L51">                    Date currentDate = new Date();</span>
+<span class="fc" id="L52">                    SimpleDateFormat sdf = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);</span>
+<span class="fc" id="L53">                    String dateTimeString = sdf.format(currentDate);</span>
+                    // fix up naming here
+<span class="fc" id="L55">                    String weatherInfo = &quot;Date and Time:: &quot; + dateTimeString + &quot;\n&quot; +</span>
+                            &quot;TEMPERATURE:: &quot; + data.temperature + &quot; F\n&quot; +
+                            &quot;WEATHER: &quot; + data.description + &quot;\n&quot; +
+                            &quot;HUMIDITY:: &quot; + data.humidity + &quot;%\n&quot; +
+                            &quot;WIND SPEED: &quot; + data.windSpeed + &quot; mph\n&quot;;
+<span class="fc" id="L60">                    cityInfoMessage.setText(weatherInfo);</span>
+<span class="fc" id="L61">                });</span>
+<span class="fc" id="L62">            }</span>
+
+            @Override
+            public void weatherDataFail(String errorMessage) {
+<span class="nc" id="L66">                System.out.println(&quot;it failed... &quot; + errorMessage);</span>
+<span class="nc" id="L67">                runOnUiThread(() -&gt; {</span>
+<span class="nc" id="L68">                    cityInfoMessage.setText(errorMessage);</span>
+<span class="nc" id="L69">                });</span>
+<span class="nc" id="L70">            }</span>
+        });
+
+<span class="fc" id="L73">        Button buttonMap = findViewById(R.id.mapButton);</span>
+<span class="fc" id="L74">        Button buttonInsight = findViewById(R.id.buttonWeatherInsight);</span>
+
+<span class="fc" id="L76">        buttonInsight.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L77">            System.out.println(&quot;Clicked insight button!!!&quot;);</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">            if (currentWeatherData == null) {</span>
+<span class="nc" id="L79">                Toast.makeText(this, &quot;Wait for weather data to load............&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L80">                return;</span>
+            }
+
+            // go to new activity for insights instead of doing it here
+<span class="fc" id="L84">            Intent intent = new Intent(this, InsightActivity.class);</span>
+            // passing data over
+<span class="fc" id="L86">            intent.putExtra(&quot;cityName&quot;, currentWeatherData.cityName);</span>
+<span class="fc" id="L87">            intent.putExtra(&quot;temperature&quot;, currentWeatherData.temperature);</span>
+<span class="fc" id="L88">            intent.putExtra(&quot;description&quot;, currentWeatherData.description);</span>
+<span class="fc" id="L89">            startActivity(intent);</span>
+<span class="fc" id="L90">        });</span>
+
+<span class="fc" id="L92">        buttonMap.setOnClickListener(this);</span>
+
+<span class="fc" id="L94">    }</span>
+
+    @Override
+    public void onClick(View view) {
+        // Implement this (create an Intent that goes to a new Activity, which shows the
+        // map)
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (view.getId() == R.id.mapButton) {</span>
+<span class="nc" id="L101">            System.out.println(&quot;going to map.....&quot;);</span>
+<span class="nc bnc" id="L102" title="All 4 branches missed.">            if (currentWeatherData == null || currentWeatherData.lat == null) {</span>
+<span class="nc" id="L103">                Toast.makeText(this, &quot;Wait for weather data load...&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L104">                return;</span>
+            }
+<span class="nc" id="L106">            Intent intent = new Intent(this, MapActivity.class);</span>
+<span class="nc" id="L107">            intent.putExtra(&quot;cityName&quot;, currentWeatherData.cityName);</span>
+<span class="nc" id="L108">            intent.putExtra(&quot;lat&quot;, currentWeatherData.lat);</span>
+<span class="nc" id="L109">            intent.putExtra(&quot;lon&quot;, currentWeatherData.lon);</span>
+<span class="nc" id="L110">            startActivity(intent);</span>
+        }
+<span class="nc" id="L112">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

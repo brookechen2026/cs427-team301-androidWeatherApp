@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InsightActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">edu.uiuc.cs427app</a> &gt; <span class="el_source">InsightActivity.java</span></div><h1>InsightActivity.java</h1><pre class="source lang-java linenums">package edu.uiuc.cs427app;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
+import edu.uiuc.cs427app.service.WeatherInsightService;
+
+<span class="fc" id="L11">public class InsightActivity extends AppCompatActivity {</span>
+
+    private WeatherInsightService insightService;
+<span class="fc" id="L14">    private String cityName = &quot;&quot;;</span>
+<span class="fc" id="L15">    private double temp = 0.0;</span>
+<span class="fc" id="L16">    private String desc = &quot;&quot;;</span>
+<span class="fc" id="L17">    private int attemptCounter = 0;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L21">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L22">        setContentView(R.layout.activity_insight);</span>
+
+<span class="fc" id="L24">        insightService = new WeatherInsightService();</span>
+
+        // getting passed data
+<span class="fc" id="L27">        cityName = getIntent().getStringExtra(&quot;cityName&quot;);</span>
+<span class="fc" id="L28">        temp = getIntent().getDoubleExtra(&quot;temperature&quot;, 0.0);</span>
+<span class="fc" id="L29">        desc = getIntent().getStringExtra(&quot;description&quot;);</span>
+
+<span class="fc" id="L31">        TextView loadingText = findViewById(R.id.textView3);</span>
+<span class="fc" id="L32">        Button btn1 = findViewById(R.id.button3);</span>
+<span class="fc" id="L33">        Button btn2 = findViewById(R.id.button4);</span>
+<span class="fc" id="L34">        TextView answerText = findViewById(R.id.textView4);</span>
+
+<span class="fc" id="L36">        System.out.println(&quot;fetching questions for &quot; + cityName);</span>
+
+        // getting the questions
+<span class="fc" id="L39">        insightService.fetchQuestions(cityName, temp, desc).thenAccept(questions -&gt; {</span>
+<span class="fc" id="L40">            System.out.println(&quot;got questions back from service&quot;);</span>
+<span class="fc" id="L41">            runOnUiThread(() -&gt; {</span>
+<span class="fc" id="L42">                loadingText.setText(&quot;choose a question below:&quot;);</span>
+
+                // set buttons with strings
+<span class="fc" id="L45">                btn1.setText(questions[0]);</span>
+<span class="fc" id="L46">                btn2.setText(questions[1]);</span>
+
+                // make visible now
+<span class="fc" id="L49">                btn1.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L50">                btn2.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L51">            });</span>
+<span class="fc" id="L52">        });</span>
+
+        // click listeners to get answer
+<span class="fc" id="L55">        btn1.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L56">            String q = btn1.getText().toString();</span>
+<span class="fc" id="L57">            answerText.setText(&quot;asking ai: &quot; + q + &quot;......&quot;);</span>
+<span class="fc" id="L58">            insightService.fetchAnswer(q, cityName, temp, desc).thenAccept(answer -&gt; {</span>
+<span class="fc" id="L59">                runOnUiThread(() -&gt; {</span>
+<span class="fc" id="L60">                    answerText.setText(answer);</span>
+<span class="fc" id="L61">                });</span>
+<span class="fc" id="L62">            });</span>
+<span class="fc" id="L63">        });</span>
+
+<span class="fc" id="L65">        btn2.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L66">            String q = btn2.getText().toString();</span>
+<span class="nc" id="L67">            answerText.setText(&quot;asking ai: &quot; + q + &quot;.......&quot;);</span>
+<span class="nc" id="L68">            insightService.fetchAnswer(q, cityName, temp, desc).thenAccept(answer -&gt; {</span>
+<span class="nc" id="L69">                runOnUiThread(() -&gt; {</span>
+<span class="nc" id="L70">                    answerText.setText(answer);</span>
+<span class="nc" id="L71">                });</span>
+<span class="nc" id="L72">            });</span>
+<span class="nc" id="L73">        });</span>
+<span class="fc" id="L74">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

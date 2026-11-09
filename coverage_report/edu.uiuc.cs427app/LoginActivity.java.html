@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoginActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">edu.uiuc.cs427app</a> &gt; <span class="el_source">LoginActivity.java</span></div><h1>LoginActivity.java</h1><pre class="source lang-java linenums">package edu.uiuc.cs427app;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.widget.*;
+import androidx.appcompat.app.AppCompatActivity;
+
+<span class="fc" id="L9">public class LoginActivity extends AppCompatActivity {</span>
+    EditText etUsername, etPassword;
+    Button btnSignIn, btnSignUp;
+    EditText etThemePrompt;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L16">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L17">        setContentView(R.layout.activity_login);</span>
+
+        // Connect variables
+<span class="fc" id="L20">        etUsername = findViewById(R.id.etUsername);</span>
+<span class="fc" id="L21">        etPassword = findViewById(R.id.etPassword);</span>
+<span class="fc" id="L22">        btnSignIn = findViewById(R.id.btnSignIn);</span>
+<span class="fc" id="L23">        btnSignUp = findViewById(R.id.btnSignUp);</span>
+<span class="fc" id="L24">        etThemePrompt = findViewById(R.id.etThemePrompt);</span>
+
+<span class="fc" id="L26">        btnSignUp.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L27">            String user = etUsername.getText().toString().trim();</span>
+<span class="fc" id="L28">            String pass = etPassword.getText().toString().trim();</span>
+<span class="fc" id="L29">            String themePrompt = etThemePrompt.getText().toString().trim();</span>
+
+<span class="pc bpc" id="L31" title="3 of 6 branches missed.">            if (user.isEmpty() || pass.isEmpty() || themePrompt.isEmpty()) {</span>
+<span class="nc" id="L32">                Toast.makeText(this, &quot;Please fill in all fields&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L33">                return;</span>
+            }
+
+<span class="fc" id="L36">            SharedPreferences prefs = getSharedPreferences(&quot;users&quot;, MODE_PRIVATE);</span>
+
+<span class="fc bfc" id="L38" title="All 2 branches covered.">            if (prefs.contains(user)) {</span>
+<span class="fc" id="L39">                Toast.makeText(this, &quot;Username already taken&quot;, Toast.LENGTH_SHORT).show();</span>
+            } else {
+<span class="fc" id="L41">                prefs.edit().putString(user, pass).putString(user + &quot;_theme&quot;, themePrompt).apply();</span>
+<span class="fc" id="L42">                Toast.makeText(this, &quot;Account created! You can now sign in.&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="fc" id="L44">        });</span>
+
+        // Check sign in account
+<span class="fc" id="L47">        btnSignIn.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L48">            String user = etUsername.getText().toString().trim();</span>
+<span class="fc" id="L49">            String pass = etPassword.getText().toString().trim();</span>
+
+<span class="fc" id="L51">            SharedPreferences prefs = getSharedPreferences(&quot;users&quot;, MODE_PRIVATE);</span>
+<span class="fc" id="L52">            String savedPass = prefs.getString(user, null);</span>
+
+<span class="pc bpc" id="L54" title="2 of 4 branches missed.">            if (savedPass != null &amp;&amp; savedPass.equals(pass)) {</span>
+                // Save their layout choice - again doesn't change layout yet
+<span class="fc" id="L56">                String themePrompt = prefs.getString(user + &quot;_theme&quot;, &quot;default theme&quot;);</span>
+
+                // Go to main
+<span class="fc" id="L59">                Intent intent = new Intent(this, MainActivity.class);</span>
+<span class="fc" id="L60">                intent.putExtra(&quot;username&quot;, user);</span>
+<span class="fc" id="L61">                intent.putExtra(&quot;themePrompt&quot;, themePrompt);</span>
+<span class="fc" id="L62">                startActivity(intent);</span>
+<span class="fc" id="L63">                finish(); // closes login screen (disables the android return button)</span>
+<span class="fc" id="L64">            } else {</span>
+<span class="nc" id="L65">                Toast.makeText(this, &quot;Wrong username or password&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="fc" id="L67">        });</span>
+<span class="fc" id="L68">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
